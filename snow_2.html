@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Snow</title>
+	<script type="text/javascript">
+	function start() {
+		//Standard canvas starting
+		var str = document.getElementById("canvas");
+		canvas = str.getContext("2d");
+		//Define the flake ID counter
+		flakeId = 0;
+		//Define the readyFlakes counter
+		readyFlakes = 0;
+		//Define ammount of flakes to be generated
+		flakeAmmount = 1500;
+		//Create the first dimention of the array to hold the data of the flakes
+		flakesData = new Array(1000);
+		//Define forground image object
+		imgObj = new Image();
+		//Define forground image object src
+		imgObj.src = "fg.png";
+		//Define wind variable for wind direction control
+		wind = 0;
+		//Start the wind changer interval
+
+		setInterval(function(){windRandom()},10);
+		//Call the flake creation counter function with parameter n. n = flake count
+		flakeCreationCounter(flakeAmmount);
+	}
+	//Function to call the flake generator n times
+	function flakeCreationCounter(n) {
+		if(flakeId < n){
+			//Call the flake generator function
+			flakeGenerator(flakeId);
+			//Increament flakeId
+			flakeId += 1;
+		}
+	}
+	//Function to generate new flakes
+	function flakeGenerator(currentFlakeId) {
+		//Create a second dimention in flakesData for the current flake
+		flakesData[currentFlakeId] = new Array(10);
+		//Generate data for new flake
+		//Generate x-axis coordinates for the flake
+		flakesData[currentFlakeId][0] = Math.floor((Math.random()*1300)+1);
+		//Generate y-axis coordinates for the flake
+		flakesData[currentFlakeId][1] = 0;
+		//Generate the radius of the flake
+		flakesData[currentFlakeId][2] = Math.floor((Math.random()*3)+1);
+		//Generate the colour for the flakes
+		colour = Math.floor((Math.random()*255)+1);
+		//Generate the red colour for the flake
+		flakesData[currentFlakeId][3] = colour;
+		//Generate the blue colour for the flake
+		flakesData[currentFlakeId][4] = colour;
+		//Generate the green colour for the flake
+		flakesData[currentFlakeId][5] = colour;
+		//Generate the flake alpha
+		flakesData[currentFlakeId][6] = 1;
+		//Generate movement type for the flake
+		flakesData[currentFlakeId][7] = Math.floor((Math.random()*2)+1);
+		if(flakesData[currentFlakeId][7] == 1){
+			//Generate flakes x fall speed
+			flakesData[currentFlakeId][8] = 0.5;
+			//Generate flakes y fall speed
+			flakesData[currentFlakeId][9] = 0.9;
+		}
+		else{
+			//Generate flakes x fall speed
+			flakesData[currentFlakeId][8] = 0.9;
+			//Generate flakes y fall speed
+			flakesData[currentFlakeId][9] = 0.9;
+		}
+		
+		//Flake generated. Now it is ready to be animated. Increament global readyFlakes
+		readyFlakes += 1;
+		//If the first flake has been generated, start animating
+		if(readyFlakes == 1){
+			animator();
+		}
+		//Ready to generate another flake. Call the flake generator counter to create a new flake, after X MS
+		setTimeout(function(){flakeCreationCounter(flakeAmmount);},9);
+	}
+	function animator() {
+		//Clear the canvas
+		canvas.clearRect(0,0,1330,800);
+		//Set the style of the background to black
+		canvas.fillStyle="rgba(0,0,0,1)";
+		//Draw the background
+		canvas.fillRect(0,0,1330,600);
+		//Draw all generated and ready flakes
+		for(i=0;i<readyFlakes;i++){
+		canvas.beginPath();
+		canvas.arc(flakesData[i][0], flakesData[i][1], flakesData[i][2], 0 , 2 * Math.PI, false);
+		canvas.fillStyle="rgba("+flakesData[i][3]+","+flakesData[i][4]+","+flakesData[i][5]+","+flakesData[i][6]+")";
+		canvas.fill();
+		canvas.closePath();
+		//Increament coordinates Need more complex logic here
+		if(flakesData[i][7] == 1){
+			if(wind == 0){
+				if(flakesData[i][8] < 0.5){
+					flakesData[i][8] += 0.03;
+				}
+				flakesData[i][0] += flakesData[i][8];
+				flakesData[i][1] += flakesData[i][9];
+			}
+			else{
+				if(flakesData[i][8] > -0.5){
+					flakesData[i][8] -= 0.03;
+				}
+				flakesData[i][0] += flakesData[i][8];
+				flakesData[i][1] += flakesData[i][9];
+			}
+		}
+		else{
+			if (wind == 0){
+				if(flakesData[i][8] < 0.9){
+					flakesData[i][8] += 0.03;
+				}
+				flakesData[i][0] += flakesData[i][8];
+				flakesData[i][1] += flakesData[i][9];
+			}
+			else{
+				if(flakesData[i][8] > -0.9){
+					flakesData[i][8] -= 0.03;
+				}
+				flakesData[i][0] += flakesData[i][8];
+				flakesData[i][1] += flakesData[i][9];
+			}
+			}
+		//Change flake alpha
+		if(flakesData[i][1]>200){
+			flakesData[i][6] -= 0.0022;
+		}
+		//If y-axis coordinate has reached the edge of the canvas, recycle it to the top
+		if(flakesData[i][1] > 590){
+			flakesData[i][1] = 0;
+			flakesData[i][6] = 1;
+		}
+		//If x-axis coordinate has reached the edge of the canvas from the left, recycle it to the top
+		if(flakesData[i][0] > 1300){
+			flakesData[i][0] = 0;
+			flakesData[i][6] = 1;
+		}
+		//If x-axis coordinate has reached the edge of the canvas from the right, recycle it to the top
+		if(flakesData[i][0] < 0){
+			flakesData[i][0] = 1300;
+			flakesData[i][6] = 1;
+		}
+		}//End of for
+		//Draw the background image
+		canvas.drawImage(imgObj,0,0,1330,600);
+		//Recall the animator function in X MS
+		setTimeout(function(){animator()},9);
+	}
+	function windRandom(){
+		windTest = Math.floor((Math.random()*250)+1);
+		if(windTest < 2){
+			if(wind == 1){
+				wind = 0;
+			}
+			else{
+				wind = 1;
+			}
+		}
+	}
+	</script>
+</head>
+<body onLoad="start()">
+	<canvas id="canvas" width="1330" height="600">
+		Your Browser Doesn't support the canvas element :(
+	</canvas>
+</body>
+</html>
